@@ -4,15 +4,15 @@ services:
     image: mariadb:latest 
     container_name: portal_pacientes_db
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: portal_paciente_LR
-      MYSQL_USER: root
-      MYSQL_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: <password>
+      MYSQL_DATABASE: <database_name>
+      MYSQL_USER: <user>
+      MYSQL_PASSWORD: <password>
     restart: always
     ports:
       - 3306:3306
     volumes:
-      - ~/portal_paciente_database:/var/lib/mysql
+      - portal_db_volume:/var/lib/mysql
  
   adminer:
     image: adminer
@@ -20,7 +20,11 @@ services:
     ports:
       - 8080:8080
 
+# ------
+#   DEV
+# ------
   app:
+    # build: .
     image: eamanu/portal_paciente:main
     container_name: portal_pacientes_app
     env_file:
@@ -38,4 +42,30 @@ services:
     depends_on:
       - app
     ports:
+      - 81:80
+# --------
+# TEST/PROD
+# --------
+  app_test:
+    # build: .
+    image: eamanu/portal_paciente:main
+    container_name: portal_pacientes_app_test
+    env_file:
+      - .env_backend_test
+    restart: always
+    depends_on:
+      - mysql
+    ports:
+      - 8001:8000
+
+  frontend_test:
+    image: eamanu/portal_paciente_frontend:main
+    container_name: portal_pacientes_frontend_test
+    restart: always
+    depends_on:
+      - app
+    ports:
       - 80:80
+
+volumes:
+  portal_db_volume:
